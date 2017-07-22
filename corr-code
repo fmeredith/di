@@ -1,0 +1,41 @@
+# load the data
+market.raw <- read.csv("data/q3/FarmersMarketsRaw.csv", na.strings=c("", "NA"), header = TRUE, sep = ",")
+#this dataset includes lots of blanks! Including these blanks as NA's gives flexibility later on with subset analysis.
+names(market.raw)
+
+# subset data for analysis - not using all columns yet
+market.data <- market.raw[c(1,9,10,11,12,29:58)]
+head(market.data)
+summary(market.data)
+
+for (i in 6:35){
+  market.data[i] <- ifelse(market.data[i]=="Y",1,0)
+}
+
+#creating different subsets to explore: (na.omit removes blank rows, which are a problem later on)
+names(market.data)
+market.test <- market.data[c(1:4,6:35)]
+
+#remove rows with sum of zero! this is important for running NMDS later.
+market.test <-  market.test[rowSums(market.test[,5:34])!=0,] # why would USDA include 500+ markets with nothing in them?? Hmm.
+market.test <- na.omit(market.test) # weird organics?
+colSums(market.test[c(5:34)]) #all columns have entries. good.
+
+rm(market.raw, market.data, i) #clean up
+
+# NMDS analysis - set up matrices first
+market.matrix<-as.matrix(market.test[,5:34])
+
+## correlation between goods
+library(Hmisc)
+# get correlation coefficients and significance on matrix of obs
+market.matrix #this was calculated for NMDS script
+
+rcorr(market.matrix, type = "pearson")
+
+#visualise these correlations
+library(corrgram)
+
+c <- corrgram(market.matrix, order=TRUE, lower.panel=panel.shade,
+         upper.panel=panel.conf, text.panel=panel.txt,
+         main="Correlations between market goods (PC Order)")
